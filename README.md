@@ -19,6 +19,8 @@ https://www.w3schools.com/cs/cs_enums.php
 **HINT:** Add a Coroutine ‘slowingCoroutine’
 
 
+**SOLUTION**
+[PlayerScript]([https://duckduckgo.com](https://drive.google.com/drive/folders/19ccaOTBbeQArx2H-cL325cXDAG7BwINH?usp=sharing) "Solution").
 
 
 
