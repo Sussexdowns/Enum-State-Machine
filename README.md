@@ -20,7 +20,7 @@ https://www.w3schools.com/cs/cs_enums.php
 
 
 **SOLUTION**
-[PlayerScript]([https://drive.google.com/drive/folders/19ccaOTBbeQArx2H-cL325cXDAG7BwINH?usp=sharing) "Solution").
+[PlayerScript]([https://drive.google.com/drive/folders/19ccaOTBbeQArx2H-cL325cXDAG7BwINH?usp=sharing "Solution").
 
 
 
