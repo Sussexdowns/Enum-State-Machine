@@ -2,8 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-
-public enum States // used by all logic
+public enum StatesPlayer // used by all logic
 {
     None,
     Idle,
@@ -11,22 +10,25 @@ public enum States // used by all logic
     Jump,
 };
 
-public class PlayerScript : MonoBehaviour
+public class PlayerTerrainScript : MonoBehaviour
 {
-    States state;
-
+    StatesPlayer state;
 
     Rigidbody rb;
     bool grounded;
 
-    float moveSpeed = 5f;
+    float moveSpeed = 10f;
+    float rotationSpeed = 5f; // Rotation speed for smooth turning
 
-     Coroutine slowingCoroutine;
+    Coroutine slowingCoroutine;
+    Coroutine rotationCoroutine; // Coroutine for smooth rotation
+
+    float currentRotationSpeed = 0f; // Current rotational speed
 
     // Start is called before the first frame update
     void Start()
     {
-        state = States.Idle;
+        state = StatesPlayer.Idle;
         rb = GetComponent<Rigidbody>();
     }
 
@@ -34,90 +36,72 @@ public class PlayerScript : MonoBehaviour
     void Update()
     {
         DoLogic();
-
-        
     }
 
     void FixedUpdate()
     {
-        grounded=false;
+        grounded = false;
     }
-
 
     void DoLogic()
     {
-        if( state == States.Idle )
+        if (state == StatesPlayer.Idle)
         {
             PlayerIdle();
         }
 
-        if( state == States.Jump )
+        if (state == StatesPlayer.Jump)
         {
             PlayerJumping();
         }
 
-        if( state == States.Walk )
+        if (state == StatesPlayer.Walk)
         {
             PlayerWalk();
         }
     }
 
-
     void PlayerIdle()
     {
-        if( Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space))
         {
             // simulate jump
             print("Jump!");
-            state = States.Jump;
-            rb.linearVelocity = new Vector3( 0,10,0);
+            state = StatesPlayer.Jump;
+            rb.linearVelocity = new Vector3(0, 10, 0);
         }
 
-        if( Input.GetKey("left"))
+        if (Input.GetKey("left"))
         {
-            print("turn left!");
-            transform.Rotate( 0, 0.5f, 0, Space.Self );
-
+            StartTurning(-rotationSpeed); // Turn left
         }
-        if( Input.GetKey("right"))
+        else if (Input.GetKey("right"))
         {
-            print("turn right!");
-            transform.Rotate( 0,-0.5f, 0, Space.Self );
+            StartTurning(rotationSpeed); // Turn right
+        }
+        else
+        {
+            StopTurning(); // Gradually stop rotating
         }
 
-        if( Input.GetKey("up"))
+        if (Input.GetKey("up"))
         {
             print("walk!");
-            state = States.Walk;
+            state = StatesPlayer.Walk;
         }
-
     }
 
     void PlayerJumping()
     {
         // player is jumping, check for hitting the ground
-        if( grounded == true )
+        if (grounded == true)
         {
             //player has landed on floor
-            state = States.Idle;
+            state = StatesPlayer.Idle;
         }
     }
-   /*
+
     void PlayerWalk()
-    {
-   
-            // Set a constant forward velocity
-            Vector3 forwardVelocity = transform.forward * moveSpeed;
-
-            // Update the Rigidbody's velocity, preserving the Y component for gravity
-            rb.linearVelocity = new Vector3(forwardVelocity.x, rb.linearVelocity.y, forwardVelocity.z);
-
-            // Clamp the velocity magnitude (optional, depending on desired behavior)
-            rb.linearVelocity = Vector3.ClampMagnitude(rb.linearVelocity, moveSpeed);
-    }
-    */
-
-        void PlayerWalk()
     {
         // Set a constant forward velocity
         Vector3 forwardVelocity = transform.forward * moveSpeed;
@@ -133,17 +117,14 @@ public class PlayerScript : MonoBehaviour
         }
     }
 
-
-
-    void OnCollisionEnter( Collision col )
+    void OnCollisionEnter(Collision col)
     {
-        if( col.gameObject.tag == "Floor")
+        if (col.gameObject.tag == "Floor")
         {
-            grounded=true;
+            grounded = true;
             print("landed!");
         }
     }
-
 
     private void OnGUI()
     {
@@ -180,7 +161,52 @@ public class PlayerScript : MonoBehaviour
         // Ensure the player fully stops
         rb.linearVelocity = Vector3.zero;
 
-        state = States.Idle;
+        state = StatesPlayer.Idle;
         print("Idle!");
+    }
+
+    void StartTurning(float targetRotationSpeed)
+    {
+        if (rotationCoroutine != null)
+        {
+            StopCoroutine(rotationCoroutine); // Stop any existing rotation coroutine
+        }
+
+        currentRotationSpeed = targetRotationSpeed;
+        rotationCoroutine = StartCoroutine(RotateGradually());
+    }
+
+    void StopTurning()
+    {
+        if (rotationCoroutine != null)
+        {
+            StopCoroutine(rotationCoroutine); // Stop any existing rotation coroutine
+        }
+
+        // Start slowing down the rotation speed gradually
+        rotationCoroutine = StartCoroutine(SlowDownRotation());
+    }
+
+    IEnumerator RotateGradually()
+    {
+        while (currentRotationSpeed != 0)
+        {
+            transform.Rotate(0, currentRotationSpeed * Time.deltaTime, 0, Space.Self);
+            yield return null;
+        }
+    }
+
+    IEnumerator SlowDownRotation()
+    {
+        float initialRotationSpeed = currentRotationSpeed;
+
+        while (Mathf.Abs(currentRotationSpeed) > 0.1f)
+        {
+            currentRotationSpeed = Mathf.Lerp(initialRotationSpeed, 0f, Time.deltaTime * 2f); // Smooth stop
+            transform.Rotate(0, currentRotationSpeed * Time.deltaTime, 0, Space.Self);
+            yield return null;
+        }
+
+        currentRotationSpeed = 0f;
     }
 }
